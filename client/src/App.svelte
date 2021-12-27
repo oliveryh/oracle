@@ -42,7 +42,7 @@ import { setClient } from "svelte-apollo";
 import { InMemoryCache } from 'apollo-cache-inmemory'
 const cache = new InMemoryCache()
 
-const httpEndpoint = 'http://localhost:3000/graphql';
+const httpEndpoint = process.env.GRAPHQL_HTTP || 'http://localhost:3000/graphql';
 
 const AUTH_TOKEN = 'apollo-token';
 
