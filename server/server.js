@@ -2,6 +2,7 @@ const express = require('express');
 const { postgraphile } = require('postgraphile');
 require('dotenv').config();
 const config = require('./config.js');
+const { RefreshDatabasePlugin } = require('./plugins.js');
 const middleware = postgraphile(config.db.url, 'app_public', {
   watchPg: true,
   graphiql: !(process.env.NODE_ENV == 'production'),
@@ -15,6 +16,7 @@ const middleware = postgraphile(config.db.url, 'app_public', {
     require('@graphile-contrib/pg-simplify-inflector'),
     require('@graphile/pg-aggregates').default,
     require('postgraphile-plugin-connection-filter'),
+    RefreshDatabasePlugin,
   ],
   simpleCollections: 'both',
   graphileBuildOptions: { pgOmitListSuffix: true },

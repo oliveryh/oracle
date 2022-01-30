@@ -1,5 +1,4 @@
 const fetch = require('node-fetch');
-const { Client } = require('pg');
 require('dotenv').config();
 const config = require('../../config.js');
 var _ = require('lodash');
@@ -33,12 +32,38 @@ async function getPage(gamertag, page) {
   return data;
 }
 
+async function getLastEntry() {
+  return pool.connect(async (connection) => {
+    const result = await connection.query(
+      sql`
+        SELECT played_at
+        FROM app_public.halo_matches
+        ORDER BY played_at
+        DESC LIMIT 1;
+      `
+    );
+    if (result.rows[0]) {
+      return result.rows[0].played_at;
+    }
+  });
+}
+
 async function getPages(gamertag, startPage, endPage) {
   let currentPage = startPage;
   let finalArr = [];
-  while (currentPage <= endPage) {
+  let alreadySeenValues = false;
+  const lastEntry = await getLastEntry();
+  while (currentPage <= endPage && !alreadySeenValues) {
     const pageData = await getPage(gamertag, currentPage);
-    finalArr.push(...pageData.data);
+    pageData.data.forEach(function (entry) {
+      const entryEpoch = new Date(entry.played_at).getTime();
+      if (lastEntry && entryEpoch <= lastEntry) {
+        alreadySeenValues = true;
+      } else {
+        finalArr.push(entry);
+      }
+    });
+
     currentPage++;
   }
   return finalArr;
@@ -77,4 +102,4 @@ async function ingestData(gamertag) {
   });
 }
 
-ingestData('IgnitedNinja');
+module.exports = { ingestData };

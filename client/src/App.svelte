@@ -55,7 +55,7 @@ const client = new ApolloClient({
 setClient(client);
 
 import { gql } from 'graphql-tag'
-import { query } from 'svelte-apollo';
+import { query, mutation } from 'svelte-apollo';
 
 const matches = query(gql`
   query MyQuery($playlist: String){
@@ -78,6 +78,30 @@ const matches = query(gql`
     playlist: selectedPlaylist
   }
 })
+
+const refreshDatabaseMutation = mutation(
+  gql`
+    mutation MyMutation($user: String!) {
+      refreshDatabase(input: {
+        user: $user
+      }) {
+        user
+      }
+    }
+  `
+)
+
+async function refreshDatabase() {
+  try {
+    await refreshDatabaseMutation({
+      variables: {
+        user: 'IgnitedNinja'
+      }
+    })
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 matches.subscribe(data => {
   apiData.set(data.data?.haloMatches)
@@ -200,11 +224,13 @@ const theme = 'dark'
 
 const playlistOptions = [{ id: '0', text: 'Quick Play' }, { id: '1', text: 'Big Team Battle' }]
 
-import { Dropdown } from "carbon-components-svelte";
+import { Button, Dropdown } from "carbon-components-svelte";
 
 let selectedFieldIdx = 0;
 $: selectedPlaylist = playlistOptionsGenerated[selectedFieldIdx]?.text || ""
 $: console.log(playlistOptionsGenerated)
+
+import Renew24 from "carbon-icons-svelte/lib/Renew24";
 
 </script>
 
@@ -215,6 +241,12 @@ $: console.log(playlistOptionsGenerated)
         <Row>
           <Console fille="blue" style="transform: scale(70%)translateY(-10px);"/>
           <h1>Halo Infinite</h1>
+        </Row>
+        <Row>
+          <Button
+            icon={Renew24}
+            on:click="{refreshDatabase}"
+          >Refresh</Button>
         </Row>
         <Row style="height: 300px">
           <Chart {theme} {options} />
