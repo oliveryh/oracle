@@ -58,3 +58,32 @@ export const seriesMA = derived(apiData, ($apiData) => {
   }
   return [];
 });
+
+export const seriesAccuracyMA = derived(apiData, ($apiData) => {
+  function getValue(numbers) {
+    const accuracy = numbers.reduce((acc, stat) => acc + stat.accuracy, 0);
+    const numValues = numbers.length;
+    return accuracy / numValues;
+  }
+
+  function window(_number, index, array) {
+    const start = Math.max(0, index - 15);
+    const end = Math.min(array.length, index + 1);
+    return _.slice(array, start, end);
+  }
+
+  function moving_average(numbers) {
+    return _.chain(numbers).map(window).map(getValue).value();
+  }
+
+  if (Array.isArray($apiData)) {
+    return moving_average($apiData).map((stat, idx) => {
+      return {
+        group: 'Accuracy (Moving Average)',
+        key: idx,
+        value: Math.round(stat * 1000) / 1000,
+      };
+    });
+  }
+  return [];
+});

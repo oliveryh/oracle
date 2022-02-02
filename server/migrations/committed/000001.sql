@@ -1,5 +1,5 @@
 --! Previous: -
---! Hash: sha1:144eb113424664042cf7e2c85fc7c59e28c99f79
+--! Hash: sha1:248e538a57857b3b67c9fefeae3e4f01a6833a85
 
 -- Enter migration here
 drop schema if exists app_public cascade;
@@ -102,7 +102,8 @@ create table app_public.halo_matches (
     playlist text NOT NULL,
     kills integer,
     deaths integer,
-    played_at timestamptz NOT NULL DEFAULT now() 
+    accuracy real,
+    played_at timestamptz NOT NULL DEFAULT now()
 );
 
 grant app_anonymous to app_postgraphile;
