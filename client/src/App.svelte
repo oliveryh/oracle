@@ -1,6 +1,6 @@
 <script>
 import { onMount } from "svelte";
-import { apiData, apiDataCounts, seriesMA, seriesKills, seriesCounts } from './store.js';
+import { apiData, apiDataCounts, seriesMA, seriesAccuracyMA, seriesKills, seriesCounts } from './store.js';
 
 async function getPage(page) {
   let response = await fetch('https://halo.api.stdlib.com/infinite@0.2.3/stats/matches/list/', {
@@ -70,6 +70,7 @@ const matches = query(gql`
       id,
       kills,
       deaths,
+      accuracy,
       playedAt,
     }
   }
@@ -280,6 +281,33 @@ import Renew24 from "carbon-icons-svelte/lib/Renew24";
               "height": "400px",
               "data": {
                 "loading": $seriesMA.length == 0
+              },
+            }}
+          />
+          </Column>
+        </Row>
+        <Row>
+          <Column>
+            <LineChart
+            data={$seriesAccuracyMA}
+            options={{
+              "title": "Accuracy Moving Average",
+              "axes": {
+                "bottom": {
+                  "title": "Game Number",
+                  "mapsTo": "key",
+                  "scaleType": "labels"
+                },
+                "left": {
+                  "domain": [30, 50],
+                  "mapsTo": "value",
+                  "title": "Conversion rate",
+                  "scaleType": "linear"
+                }
+              },
+              "height": "400px",
+              "data": {
+                "loading": $seriesAccuracyMA.length == 0
               },
             }}
           />
