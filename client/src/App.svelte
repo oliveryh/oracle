@@ -1,6 +1,6 @@
 <script>
 import { onMount } from "svelte";
-import { apiData, apiDataCounts, seriesMA, seriesAccuracyMA, seriesKills, seriesCounts } from './store.js';
+import { apiData, apiDataCounts, apiDataHours, seriesMA, seriesAccuracyMA, seriesTime, seriesKills, seriesCounts } from './store.js';
 
 async function getPage(page) {
   let response = await fetch('https://halo.api.stdlib.com/infinite@0.2.3/stats/matches/list/', {
@@ -158,6 +158,25 @@ const countMatches = async () => {
 }
 countMatches()
 
+const hourMatches = async () => {
+  const reply = await query(gql`
+    query {
+      haloMatchesConnection {
+        groupedAggregates(groupBy: PLAYED_AT_TRUNCATED_TO_DAY) {
+          keys
+          sum {
+            duration
+          }
+        }
+      }
+    }
+  `);
+  reply.subscribe(data => {
+    apiDataHours.set(data.data?.haloMatchesConnection.groupedAggregates)
+  })
+}
+hourMatches()
+
 onMount(async () => {
   console.log("RUNNING")
 });
@@ -221,17 +240,67 @@ $: options = {
   backgroundColor: 'transparent'
 };
 
+$: optionsTime = {
+  title: {
+    top: 30,
+    left: 'center',
+    text: 'Game Count'
+  },
+  
+  tooltip: {},
+  visualMap: {
+    min: 0,
+    max: 3,
+    type: 'piecewise',
+    orient: 'horizontal',
+    left: 'center',
+    top: 65,
+    inRange: {   
+      color: ['#8a3ffc', '#d4bbff'] //From smaller to bigger value ->
+    }
+  },
+  calendar: {
+    dayLabel: {
+      firstDay: 1,
+      nameMap: 'cn'
+    },
+    top: 120,
+    left: 30,
+    right: 30,
+    cellSize: ['auto', 13],
+    range: '2021',
+    splitLine: {
+      lineStyle: {
+          color: 'white',
+          width: 1
+      }
+    },
+    itemStyle: {
+      borderWidth: 0.5,
+    },
+    yearLabel: { show: true }
+  },
+  series: {
+    type: 'heatmap',
+    coordinateSystem: 'calendar',
+    data: $seriesTime
+  },
+  backgroundColor: 'transparent'
+};
+
 const theme = 'dark'
 
 const playlistOptions = [{ id: '0', text: 'Quick Play' }, { id: '1', text: 'Big Team Battle' }]
 
-import { Button, Dropdown } from "carbon-components-svelte";
+import { Button, Dropdown, ContentSwitcher, Switch } from "carbon-components-svelte";
 
 let selectedFieldIdx = 0;
 $: selectedPlaylist = playlistOptionsGenerated[selectedFieldIdx]?.text || ""
 $: console.log(playlistOptionsGenerated)
 
 import Renew24 from "carbon-icons-svelte/lib/Renew24";
+
+let selectedHeatmapOption = 0;
 
 </script>
 
@@ -244,13 +313,27 @@ import Renew24 from "carbon-icons-svelte/lib/Renew24";
           <h1>Halo Infinite</h1>
         </Row>
         <Row>
-          <Button
-            icon={Renew24}
-            on:click="{refreshDatabase}"
-          >Refresh</Button>
+          <Column>
+            <Button
+              icon={Renew24}
+              on:click="{refreshDatabase}"
+            >Refresh</Button>
+          </Column>
+        </Row>
+        <Row>
+          { selectedHeatmapOption }
+          <Column sm={1} lg={4}>
+            <ContentSwitcher bind:selectedIndex={selectedHeatmapOption}>
+              <Switch text="Count" />
+              <Switch text="Time Played" />
+            </ContentSwitcher>
+          </Column>
         </Row>
         <Row style="height: 300px">
           <Chart {theme} {options} />
+        </Row>
+        <Row style="height: 300px">
+          <Chart {theme} options={optionsTime} />
         </Row>
         <Row>
           <Column>

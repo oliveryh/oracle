@@ -3,6 +3,7 @@ import _ from 'lodash';
 
 export const apiData = writable([]);
 export const apiDataCounts = writable([]);
+export const apiDataHours = writable([]);
 
 export const seriesKills = derived(apiData, ($apiData) => {
   if (Array.isArray($apiData)) {
@@ -25,6 +26,18 @@ export const seriesCounts = derived(apiDataCounts, ($apiDataCounts) => {
   if (Array.isArray($apiDataCounts)) {
     return $apiDataCounts.map((el) => {
       return [el.keys[0].slice(0, 10), Number(el.distinctCount.id)];
+    });
+  }
+  return [];
+});
+
+export const seriesTime = derived(apiDataHours, ($apiDataHours) => {
+  if (Array.isArray($apiDataHours)) {
+    return $apiDataHours.map((el) => {
+      return [
+        el.keys[0].slice(0, 10),
+        parseFloat(Number(el.sum.duration) / 3600).toFixed(2),
+      ];
     });
   }
   return [];

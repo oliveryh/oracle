@@ -80,6 +80,7 @@ async function ingestData(gamertag) {
       _.get(apiResult, 'player.stats.core.summary.kills'),
       _.get(apiResult, 'player.stats.core.summary.deaths'),
       parseFloat(_.get(apiResult, 'player.stats.core.shots.accuracy')),
+      apiResult.duration.seconds,
       apiResult.played_at,
     ];
   });
@@ -87,7 +88,7 @@ async function ingestData(gamertag) {
   pool.connect(async (connection) => {
     await connection.query(
       sql`
-    INSERT INTO app_public.halo_matches (id, gamertag, map, playlist, kills, deaths, accuracy, played_at)
+    INSERT INTO app_public.halo_matches (id, gamertag, map, playlist, kills, deaths, accuracy, duration, played_at)
     SELECT *
     FROM ${sql.unnest(reformattedData, [
       'text',
@@ -97,11 +98,14 @@ async function ingestData(gamertag) {
       'int4',
       'int4',
       'float4',
+      'int4',
       'timestamptz',
     ])}
   `
     );
   });
 }
+
+ingestData('IgnitedNinja');
 
 module.exports = { ingestData };

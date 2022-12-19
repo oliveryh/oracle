@@ -1,5 +1,5 @@
 --! Previous: -
---! Hash: sha1:248e538a57857b3b67c9fefeae3e4f01a6833a85
+--! Hash: sha1:4e2772d6505e1d3844aff827a6759f735da5b6de
 
 -- Enter migration here
 drop schema if exists app_public cascade;
@@ -103,6 +103,7 @@ create table app_public.halo_matches (
     kills integer,
     deaths integer,
     accuracy real,
+    duration integer,
     played_at timestamptz NOT NULL DEFAULT now()
 );
 
